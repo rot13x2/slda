@@ -931,7 +931,7 @@ void slda::infer_only(corpus * c, const settings * setting, const char * directo
     double **var_gamma, likelihood, **phi;
     double* phi_m;
     char filename[100];
-    double base_score, score;
+    double base_score, score, score0;
     int label;
     int num_correct = 0;
     int max_length = c->max_corpus_length();
@@ -954,6 +954,10 @@ void slda::infer_only(corpus * c, const settings * setting, const char * directo
     FILE * inf_label_file = NULL;
     sprintf(filename, "%s/inf-labels.dat", directory);
     inf_label_file = fopen(filename, "w");
+    
+    FILE * inf_scores_file = NULL;
+    sprintf(filename, "%s/inf-scores.dat", directory);
+    inf_scores_file = fopen(filename, "w");
 
     for (d = 0; d < c->num_docs; d++)
     {
@@ -979,6 +983,7 @@ void slda::infer_only(corpus * c, const settings * setting, const char * directo
         //do classification
         label = num_classes-1;
         base_score = 0.0;
+        score0 = 0.0;
         for (i = 0; i < num_classes-1; i ++)
         {
             score = 0.0;
@@ -991,11 +996,14 @@ void slda::infer_only(corpus * c, const settings * setting, const char * directo
                 base_score = score;
                 label = i;
             }
+            if (i == 0)
+                score0 = score;
         }
         if (label == doc->label)
             num_correct ++;
 
         fprintf(likelihood_file, "%5.5f\n", likelihood);
+        fprintf(inf_scores_file, "%5.5f\n", score0);
         fprintf(inf_label_file, "%d\n", label);
     }
 
